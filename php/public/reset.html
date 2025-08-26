@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AMP Reset Password</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>body{font-family:Arial,sans-serif;margin:2rem;}label{display:block;margin:.5rem 0}.row{margin:.5rem 0}</style>
+  <script>
+    async function requestOtp(e){
+      e.preventDefault();
+      const email=document.getElementById('email').value;
+      const res=await fetch('/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      document.getElementById('out').textContent=await res.text();
+    }
+    async function updatePwd(e){
+      e.preventDefault();
+      const email=document.getElementById('email').value;
+      const code=document.getElementById('code').value;
+      const new_password=document.getElementById('new_password').value;
+      const res=await fetch('/api/auth/update-password',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,code,new_password})});
+      document.getElementById('out').textContent=await res.text();
+    }
+  </script>
+</head>
+<body>
+  <h1>Reset Password</h1>
+  <form onsubmit="requestOtp(event)">
+    <label>Email <input id="email" type="email" required></label>
+    <div class="row"><button type="submit">Send OTP</button></div>
+  </form>
+  <h2>Update</h2>
+  <form onsubmit="updatePwd(event)">
+    <label>OTP Code <input id="code" type="text" required></label>
+    <label>New Password <input id="new_password" type="password" required></label>
+    <div class="row"><button type="submit">Update Password</button></div>
+  </form>
+  <pre id="out"></pre>
+</body>
+</html>
+
+

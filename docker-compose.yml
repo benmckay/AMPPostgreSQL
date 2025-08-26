@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+    image: amp-php
+    ports:
+      - "8080:8080"
+    environment:
+      DEV_MODE: 1
+      DB_DSN: pgsql:host=db;port=5432;dbname=amp
+      DB_USER: postgres
+      DB_PASS: Karanja8
+      JWT_SECRET: change_this_secret
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: amp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Karanja8
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+
+

@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AMP Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>body{font-family:Arial,sans-serif;margin:2rem}pre{background:#f5f5f5;padding:1rem}</style>
+  <script>
+    async function loadDash(endpoint){
+      const token=sessionStorage.getItem('token');
+      const res=await fetch(endpoint,{headers:{'Authorization':'Bearer '+token}});
+      const data=await res.json();
+      document.getElementById('out').textContent=JSON.stringify(data,null,2);
+    }
+    async function init(){
+      await loadDash('/api/dashboard/requester');
+    }
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</head>
+<body>
+  <h1>Dashboard</h1>
+  <nav>
+    <button onclick="loadDash('/api/dashboard/requester')">Requester</button>
+    <button onclick="loadDash('/api/dashboard/manager')">Manager</button>
+    <button onclick="loadDash('/api/dashboard/cos')">COS</button>
+    <button onclick="loadDash('/api/dashboard/hr')">HR</button>
+    <button onclick="loadDash('/api/dashboard/ict')">ICT</button>
+    <button onclick="loadDash('/api/dashboard/admin')">Admin</button>
+    <a href="users.html" style="margin-left:1rem">Users</a>
+  </nav>
+  <pre id="out"></pre>
+</body>
+</html>
+
+

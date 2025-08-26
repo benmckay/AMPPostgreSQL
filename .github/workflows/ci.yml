@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: amp
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_pgsql
+
+      - name: Lint PHP files
+        run: |
+          find php -type f -name "*.php" -print0 | xargs -0 -I{} php -l {}
+
+      - name: Build Docker image
+        run: docker build -t amp-php-ci .
+
+      - name: Run DB migrations
+        env:
+          DB_DSN: pgsql:host=127.0.0.1;port=5432;dbname=amp
+          DB_USER: postgres
+          DB_PASS: postgres
+        run: php php/scripts/migrate.php
+
+      - name: Smoke - render docs index
+        run: |
+          test -f README.md
+
+

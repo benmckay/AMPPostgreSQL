@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AMP Users</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{font-family:Arial,sans-serif;margin:2rem}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #ddd;padding:.5rem}
+  </style>
+  <script>
+    async function api(path, opts={}){
+      const token=sessionStorage.getItem('token');
+      opts.headers=Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+token}, opts.headers||{});
+      const res=await fetch(path, opts);
+      if(!res.ok) throw new Error(await res.text());
+      const ct=res.headers.get('Content-Type')||'';
+      return ct.includes('application/json')?res.json():res.text();
+    }
+    async function loadUsers(){
+      const q=document.getElementById('q').value.toLowerCase();
+      const data=await api('/api/users');
+      const tbody=document.querySelector('tbody');
+      tbody.innerHTML='';
+      data.filter(u=>{
+        if(!q) return true;
+        return (u.full_name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.department||'').toLowerCase().includes(q);
+      }).forEach(u=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${u.user_id}</td><td>${u.full_name}</td><td>${u.email}</td><td>${u.department||''}</td><td>${u.role_id||''}</td><td>${u.is_active?'Yes':'No'}</td><td><button onclick="deactivate(${u.user_id},${u.is_active?1:0})">${u.is_active?'Deactivate':'Reactivate'}</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    async function createUser(e){
+      e.preventDefault();
+      const full_name=document.getElementById('full_name').value;
+      const email=document.getElementById('email').value;
+      const password=document.getElementById('password').value;
+      await api('/api/users',{method:'POST',body:JSON.stringify({full_name,email,password})});
+      await loadUsers();
+      e.target.reset();
+    }
+    async function deactivate(id, active){
+      const is_active = active? false : true;
+      await api('/api/users/'+id,{method:'PUT',body:JSON.stringify({is_active})});
+      await loadUsers();
+    }
+    window.addEventListener('DOMContentLoaded',()=>{ loadUsers(); });
+  </script>
+</head>
+<body>
+  <h1>Users</h1>
+  <div>
+    <input id="q" placeholder="Filter by name/email/department" oninput="loadUsers()" style="width:50%">
+  </div>
+  <form onsubmit="createUser(event)">
+    <input id="full_name" placeholder="Full name" required>
+    <input id="email" type="email" placeholder="Email" required>
+    <input id="password" type="password" placeholder="Temp password" required>
+    <button type="submit">Create</button>
+  </form>
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Active</th><th>Action</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p><a href="dashboard.html">Back to dashboard</a></p>
+</body>
+</html>
+
+
